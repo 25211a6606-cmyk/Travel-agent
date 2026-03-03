@@ -132,22 +132,24 @@ function ExpenseTable({
                     <StatusBadge status={expense.status} />
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {currentUser?.role === 'manager' && expense.status === 'pending' ? (
+                    {currentUser?.role === 'manager' && expense.status !== 'approved' ? (
                       <div className="flex items-center justify-end gap-2">
                         <button 
                           onClick={() => handleStatusUpdate(expense.id, 'approved')}
-                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                          title="Approve"
+                          className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg transition-colors font-semibold text-xs"
                         >
-                          <CheckCircle2 size={18} />
+                          <CheckCircle2 size={14} />
+                          Approve
                         </button>
-                        <button 
-                          onClick={() => handleStatusUpdate(expense.id, 'rejected')}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Reject"
-                        >
-                          <XCircle size={18} />
-                        </button>
+                        {expense.status === 'pending' && (
+                          <button 
+                            onClick={() => handleStatusUpdate(expense.id, 'rejected')}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg transition-colors font-semibold text-xs"
+                          >
+                            <XCircle size={14} />
+                            Reject
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
@@ -819,7 +821,7 @@ export default function App() {
 
             {activeTab === 'Approvals' && (
               <div className="space-y-8">
-                <div className="bg-white p-8 rounded-3xl border border-gray-200">
+                <div className="bg-white p-8 rounded-3xl border border-gray-200 flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
                       <CheckCircle2 size={24} />
@@ -833,6 +835,20 @@ export default function App() {
                       </p>
                     </div>
                   </div>
+                  {currentUser?.role === 'manager' && expenses.filter(e => e.status === 'pending').length > 0 && (
+                    <button 
+                      onClick={async () => {
+                        const pending = expenses.filter(e => e.status === 'pending');
+                        for (const exp of pending) {
+                          await handleStatusUpdate(exp.id, 'approved');
+                        }
+                      }}
+                      className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-sm flex items-center gap-2"
+                    >
+                      <CheckCircle2 size={18} />
+                      Approve All
+                    </button>
+                  )}
                 </div>
 
                 <ExpenseTable 
