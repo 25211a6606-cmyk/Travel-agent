@@ -94,7 +94,13 @@ async function startServer() {
   });
 
   app.get("/api/users", (req, res) => {
-    const users = db.prepare("SELECT * FROM users").all();
+    const { email } = req.query;
+    if (email) {
+      const user = db.prepare("SELECT id, name, email, role FROM users WHERE email = ?").get(email);
+      if (user) return res.json(user);
+      else return res.status(404).json({ error: "User not found" });
+    }
+    const users = db.prepare("SELECT id, name, email, role FROM users").all();
     res.json(users);
   });
 

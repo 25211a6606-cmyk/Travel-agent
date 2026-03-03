@@ -176,7 +176,10 @@ function ExpenseTable({
 }
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('expense_user');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [stats, setStats] = useState<Stats>({ pendingAmount: 0, approvedAmount: 0, totalCount: 0 });
@@ -211,6 +214,23 @@ export default function App() {
     description: '',
     type: 'travel'
   });
+
+  useEffect(() => {
+    const verifyUser = async () => {
+      if (currentUser) {
+        try {
+          const res = await fetch(`/api/users?email=${currentUser.email}`);
+          if (!res.ok) {
+            handleLogout();
+          }
+        } catch (error) {
+          // If server is down, don't necessarily log out, but maybe just log it
+          console.error("Failed to verify user session");
+        }
+      }
+    };
+    verifyUser();
+  }, []);
 
   useEffect(() => {
     if (currentUser) {
@@ -272,6 +292,7 @@ export default function App() {
       const data = await res.json();
       if (res.ok) {
         setCurrentUser(data);
+        localStorage.setItem('expense_user', JSON.stringify(data));
       } else {
         setLoginError(data.error || (isSignUp ? 'Signup failed' : 'Login failed'));
       }
@@ -284,6 +305,7 @@ export default function App() {
 
   const handleLogout = () => {
     setCurrentUser(null);
+    localStorage.removeItem('expense_user');
     setActiveTab('Dashboard');
     setAuthData({ name: '', email: '', password: '', role: 'employee' });
     setIsSignUp(false);
@@ -372,7 +394,7 @@ export default function App() {
               <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-200">
                 <Wallet className="w-10 h-10 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-gray-900">Welcome to ExpensePro</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Welcome to Expense Pro</h1>
               <p className="text-gray-500 mt-2">Select your role to continue</p>
             </div>
 
@@ -424,7 +446,7 @@ export default function App() {
               <Wallet className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight">
-              {isSignUp ? 'Join ExpensePro' : `${selectedRole === 'manager' ? 'Manager' : 'Employee'} Portal`}
+              {isSignUp ? 'Join Expense Pro' : `${selectedRole === 'manager' ? 'Manager' : 'Employee'} Portal`}
             </h1>
             <p className="text-gray-400 text-sm mt-1">
               {isSignUp ? 'Create your account' : 'Sign in to continue'}
@@ -538,7 +560,7 @@ export default function App() {
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
             <Wallet className="w-5 h-5" />
           </div>
-          <span className="font-bold text-xl tracking-tight">ExpensePro</span>
+          <span className="font-bold text-xl tracking-tight">Expense Pro</span>
         </div>
 
         <nav className="flex-1 px-4 space-y-1 mt-4">
