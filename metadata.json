@@ -1,0 +1,5 @@
+{
+  "name": "Employee travel advance AI agent",
+  "description": "A travel and expense management application with manager approval workflows.",
+  "requestFramePermissions": []
+}
